@@ -1,25 +1,17 @@
 const fs = require('fs');
-const {promisify} = require('util');
 const path = require('path');
 const swaggerUiAssetPath = require('swagger-ui-dist').getAbsoluteFSPath();
-
-const readdir = promisify(fs.readdir);
-const unlink = promisify(fs.unlink);
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
-const copyFile = promisify(fs.copyFile);
-
-const STATIC_DIR =  path.join(__dirname, '..', 'static');
+const STATIC_DIR = './static';
 
 (async () => {
   try {
-    const files = await readdir(STATIC_DIR);
+    const files = await fs.promises.readdir(STATIC_DIR);
     await Promise.all(
       files.map(async (file) => {
         try {
           if (file !== '.gitkeep') {
             const p = path.join(STATIC_DIR, file);
-            await unlink(p);
+            await fs.promises.unlink(p);
           }
         } catch (err) {
           // do nothing, file not exists
@@ -29,7 +21,8 @@ const STATIC_DIR =  path.join(__dirname, '..', 'static');
   } catch (ex) {
     // do nothing, directory not exists
   }
-  [
+  
+  const copyArray = [
     'favicon-16x16.png',
     'favicon-32x32.png',
     'index.html',
@@ -42,22 +35,17 @@ const STATIC_DIR =  path.join(__dirname, '..', 'static');
     'swagger-ui.css.map',
     'swagger-ui.js',
     'swagger-ui.js.map',
-  ].forEach((filename) => {
-    fs.createReadStream(`${swaggerUiAssetPath}/${filename}`).pipe(
-      fs.createWriteStream(path.resolve(`${STATIC_DIR}/${filename}`)),
-    );
-  });
-  const newIndex = await readFile(
-    path.resolve(`${STATIC_DIR}/index.html`),
-    'utf-8',
-  );
-  await copyFile(
-    `${__dirname}/../node_modules/redoc/bundles/redoc.standalone.js`,
-    `${STATIC_DIR}/redoc.standalone.js`,
-  );
-  await writeFile(
-    path.resolve(`${STATIC_DIR}/docs.html`),
-    `
+  ]
+
+  for (let i = 0; i < copyArray.length; i++) {
+    await fs.promises.copyFile(`${swaggerUiAssetPath}/${copyArray[i]}`, `${STATIC_DIR}/${copyArray[i]}`)
+  }
+
+  const newIndex = await fs.promises.readFile(path.resolve(`${STATIC_DIR}/index.html`), 'utf-8');
+
+  await fs.promises.copyFile(`${__dirname}/../node_modules/redoc/bundles/redoc.standalone.js`, `${STATIC_DIR}/redoc.standalone.js` );
+
+  await fs.promises.writeFile(path.resolve(`${STATIC_DIR}/docs.html`), `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -70,7 +58,8 @@ const STATIC_DIR =  path.join(__dirname, '..', 'static');
   </body>
 </html>`,
   );
-  await writeFile(
+
+  await fs.promises.writeFile(
     path.resolve(`${STATIC_DIR}/index.html`),
     newIndex
       .replace(
