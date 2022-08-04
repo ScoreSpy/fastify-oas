@@ -35,6 +35,7 @@ const STATIC_DIR = './static';
     'swagger-ui.css.map',
     'swagger-ui.js',
     'swagger-ui.js.map',
+    'index.css'
   ]
 
   for (let i = 0; i < copyArray.length; i++) {
@@ -46,37 +47,37 @@ const STATIC_DIR = './static';
   await fs.promises.copyFile(`${__dirname}/../node_modules/redoc/bundles/redoc.standalone.js`, `${STATIC_DIR}/redoc.standalone.js` );
 
   await fs.promises.writeFile(path.resolve(`${STATIC_DIR}/docs.html`), `
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>Docs</title>
-  </head>
-  <body>
-    <redoc spec-url="./json"></redoc>
-    <script src="./redoc.standalone.js"> </script>
-  </body>
-</html>`,
-  );
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Docs</title>
+      </head>
+      <body>
+        <redoc spec-url="./json"></redoc>
+        <script src="./redoc.standalone.js"> </script>
+      </body>
+    </html>
+  `);
 
-  await fs.promises.writeFile(
-    path.resolve(`${STATIC_DIR}/index.html`),
-    newIndex
-      .replace(
-        'window.ui = ui',
-        `window.ui = ui
 
-      function resolveUrl (url) {
-          const anchor = document.createElement('a')
-          anchor.href = url
-          return anchor.href
-      }`,
-      )
-      .replace(
-        /url: "(.*)",/,
-        `url: resolveUrl('./json'),
-    validatorUrl: null,
-    oauth2RedirectUrl: resolveUrl('./oauth2-redirect.html'),`,
-      ),
-  );
+  fs.promises.writeFile(path.resolve(`${STATIC_DIR}/swagger-initializer.js`), `
+    window.onload = function() {
+      window.ui = SwaggerUIBundle({
+        url: './json',
+        validatorUrl: null,
+        oauth2RedirectUrl: './oauth2-redirect.html',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout"
+      });
+    };
+  `)
 })();
