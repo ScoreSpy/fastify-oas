@@ -237,7 +237,7 @@ describe('openapi constructor', () => {
       });
       const api = apiFn();
       const apiCache = apiFn();
-      const expected = "openapi: 3.0.0\ninfo:\n  title: fastify-oas\n  description: Fastify OpenAPI specification generator plugin\n  version: X.X.X\ncomponents: {}\nservers:\n  - url: 'http://127.0.0.1/'\npaths: {}\n".replace(
+      const expected = "openapi: 3.0.0\ninfo:\n  title: fastify-oas\n  description: Fastify OpenAPI specification generator plugin\n  version: X.X.X\ncomponents: {}\nservers:\n  - url: http://127.0.0.1/\npaths: {}\n".replace(
         'X.X.X',
         version
       );
